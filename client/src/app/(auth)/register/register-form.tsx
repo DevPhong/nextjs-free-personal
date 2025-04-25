@@ -30,8 +30,6 @@ export default function RegisterForm() {
     },
   });
 
-  console.log(process.env.NEXT_PUBLIC_API_ENDPOINT);
-
   const onSubmit = async (values: RegisterBodyType) => {
     const result = await fetch(
       `${envConfig.NEXT_PUBLIC_API_ENDPOINT}/auth/register`,

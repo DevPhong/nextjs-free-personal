@@ -1,7 +1,8 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "next-themes";
 import Header from "@/components/header";
+import { Toaster } from "@/components/ui/toast-custom";
 
 const inter = Inter({ subsets: ["vietnamese"] });
 
@@ -11,12 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressContentEditableWarning
-      className="dark"
-      style={{ colorScheme: "dark" }}
-    >
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className}`}>
         <ThemeProvider
           attribute="class"
@@ -25,6 +21,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
+          <Toaster />
           {children}
         </ThemeProvider>
       </body>
