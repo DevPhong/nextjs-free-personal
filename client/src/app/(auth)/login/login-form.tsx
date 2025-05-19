@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { LoginBody, LoginBodyType } from "@/schemaValidations/auth.schema";
 import envConfig from "@/config";
 import { toast } from "sonner";
+import { useAppContext } from "@/AppProvider";
 
 export default function LoginForm() {
   const form = useForm<LoginBodyType>({
@@ -25,6 +26,8 @@ export default function LoginForm() {
       password: "",
     },
   });
+
+  const { setSessionToken } = useAppContext();
 
   const onSubmit = async (values: LoginBodyType) => {
     try {
@@ -53,9 +56,32 @@ export default function LoginForm() {
       });
       // Thành công
       toast.success("", { description: result.payload.message });
+      // Gửi dữ liệu lên server nextjs (set-token)
+      const resultFromNextServer = await fetch(`/api/auth`, {
+        method: "POST",
+        body: JSON.stringify(result),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then(async (res) => {
+        // Vì fetch không trả về reject nên cần phải làm như này, để ngắt không trả về result
+        const payload = await res.json();
+        const data = {
+          status: res.status,
+          payload,
+        };
+
+        if (!res.ok) {
+          throw data;
+        }
+
+        return data;
+      });
+
+      setSessionToken(resultFromNextServer.payload.data.token);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const errors = error.payload.errors as {
+      const errors = error?.payload?.errors as {
         field: string;
         message: string;
       }[];
