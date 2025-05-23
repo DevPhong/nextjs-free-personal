@@ -4,7 +4,6 @@ import { ThemeProvider } from "next-themes";
 import Header from "@/components/header";
 import { Toaster } from "@/components/ui/toast-custom";
 import AppProvider from "@/AppProvider";
-import { cookies } from "next/headers";
 
 const inter = Inter({ subsets: ["vietnamese"] });
 
@@ -13,21 +12,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
-  const sessionToken = (await cookieStore).get("sessionToken")?.value;
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className}`}>
+        <Toaster />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <Header />
-          <AppProvider initialSessionToken={sessionToken}>
-            <Toaster />
+          <AppProvider>
+            <Header />
             {children}
           </AppProvider>
         </ThemeProvider>

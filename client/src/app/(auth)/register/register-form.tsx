@@ -17,9 +17,13 @@ import {
   RegisterBody,
   RegisterBodyType,
 } from "@/schemaValidations/auth.schema";
-import envConfig from "@/config";
+import authApiRequest from "@/apiRequests/auth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function RegisterForm() {
+  const router = useRouter();
+
   const form = useForm<RegisterBodyType>({
     resolver: zodResolver(RegisterBody),
     defaultValues: {
@@ -31,17 +35,38 @@ export default function RegisterForm() {
   });
 
   const onSubmit = async (values: RegisterBodyType) => {
-    const result = await fetch(
-      `${envConfig.NEXT_PUBLIC_API_ENDPOINT}/auth/register`,
-      {
-        body: JSON.stringify(values),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
+    try {
+      const result = await authApiRequest.register(values);
+      // Thành công
+      toast.success("", { description: result.payload.message });
+      // Gửi dữ liệu lên server nextjs (set-token)
+      await authApiRequest.auth({
+        sessionToken: result.payload.data.token as string,
+      });
+      router.push("/me");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      const errors = error?.payload?.errors as {
+        field: string;
+        message: string;
+      }[];
+
+      // Nếu lỗi 422 là lỗi form thì trả về cho form
+      const status = error.status as number;
+      if (status === 422) {
+        errors.forEach((error) => {
+          form.setError(error.field as "email" | "password", {
+            type: "server",
+            message: error.message,
+          });
+        });
+      } else {
+        // Lỗi khác
+        toast.error("Lỗi", {
+          description: error.payload.message,
+        });
       }
-    ).then((res) => res.json());
-    console.log(result);
+    }
   };
 
   return (
