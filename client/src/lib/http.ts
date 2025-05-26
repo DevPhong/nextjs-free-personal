@@ -5,16 +5,46 @@ type CustomOptions = Omit<RequestInit, "method"> & {
   baseUrl?: string | undefined;
 };
 
+const ENTITY_ERROR_STATUS = 422;
+
+type EntityErrorPayload = {
+  message: string;
+  errors: {
+    fields: string;
+    message: string;
+  }[];
+};
+
 export class HttpError extends Error {
   status: number;
   payload: {
     message: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor({ status, payload }: { status: number; payload: any }) {
     super("Http Error");
+    this.status = status;
+    this.payload = payload;
+  }
+}
+
+export class EntityError extends HttpError {
+  status: number;
+  payload: EntityErrorPayload;
+
+  constructor({
+    status,
+    payload,
+  }: {
+    status: 422;
+    payload: EntityErrorPayload;
+  }) {
+    super({ status, payload });
+    if (status !== ENTITY_ERROR_STATUS) {
+      throw new Error(
+        `EntityError must have status ${ENTITY_ERROR_STATUS}, but got ${status}`
+      );
+    }
     this.status = status;
     this.payload = payload;
   }
@@ -83,7 +113,16 @@ const request = async <Response>(
   };
 
   if (!res.ok) {
-    throw new HttpError(data);
+    if (res.status === ENTITY_ERROR_STATUS) {
+      throw new EntityError(
+        data as {
+          status: 422;
+          payload: EntityErrorPayload;
+        }
+      );
+    } else {
+      throw new HttpError(data);
+    }
   }
 
   if (["/auth/login", "/auth/register"].includes(url)) {
@@ -105,7 +144,6 @@ const http = {
 
   post<Response>(
     url: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body: any,
     options?: Omit<CustomOptions, "body"> | undefined
   ) {
@@ -114,7 +152,6 @@ const http = {
 
   put<Response>(
     url: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body: any,
     options?: Omit<CustomOptions, "body"> | undefined
   ) {
@@ -123,7 +160,6 @@ const http = {
 
   delete<Response>(
     url: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body: any,
     options?: Omit<CustomOptions, "body"> | undefined
   ) {

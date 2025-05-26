@@ -17,6 +17,8 @@ import { LoginBody, LoginBodyType } from "@/schemaValidations/auth.schema";
 import { toast } from "sonner";
 import authApiRequest from "@/apiRequests/auth";
 import { useRouter } from "next/navigation";
+import { handleErrorApi } from "@/lib/utils";
+import { useState } from "react";
 
 export default function LoginForm() {
   const form = useForm<LoginBodyType>({
@@ -27,8 +29,11 @@ export default function LoginForm() {
     },
   });
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (values: LoginBodyType) => {
+    if (loading) return; // Ngăn chặn gửi form khi đang xử lý
+    setLoading(true);
     try {
       const result = await authApiRequest.login(values);
       // Thành công
@@ -38,28 +43,14 @@ export default function LoginForm() {
         sessionToken: result.payload.data.token as string,
       });
       router.push("/me");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const errors = error?.payload?.errors as {
-        field: string;
-        message: string;
-      }[];
-
-      // Nếu lỗi 422 là lỗi form thì trả về cho form
-      const status = error.status as number;
-      if (status === 422) {
-        errors.forEach((error) => {
-          form.setError(error.field as "email" | "password", {
-            type: "server",
-            message: error.message,
-          });
-        });
-      } else {
-        // Lỗi khác
-        toast.error("Lỗi", {
-          description: error.payload.message,
-        });
-      }
+      // Xử lý lỗi
+      handleErrorApi({
+        error,
+        setError: form.setError,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,6 +88,7 @@ export default function LoginForm() {
             </FormItem>
           )}
         />
+
         <Button type="submit" className="!mt-8 w-full">
           Đăng nhập
         </Button>

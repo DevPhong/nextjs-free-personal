@@ -20,9 +20,12 @@ import {
 import authApiRequest from "@/apiRequests/auth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { handleErrorApi } from "@/lib/utils";
+import { useState } from "react";
 
 export default function RegisterForm() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<RegisterBodyType>({
     resolver: zodResolver(RegisterBody),
@@ -35,6 +38,8 @@ export default function RegisterForm() {
   });
 
   const onSubmit = async (values: RegisterBodyType) => {
+    if (loading) return; // Ngăn chặn gửi form khi đang xử lý
+    setLoading(true);
     try {
       const result = await authApiRequest.register(values);
       // Thành công
@@ -44,28 +49,13 @@ export default function RegisterForm() {
         sessionToken: result.payload.data.token as string,
       });
       router.push("/me");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const errors = error?.payload?.errors as {
-        field: string;
-        message: string;
-      }[];
-
-      // Nếu lỗi 422 là lỗi form thì trả về cho form
-      const status = error.status as number;
-      if (status === 422) {
-        errors.forEach((error) => {
-          form.setError(error.field as "email" | "password", {
-            type: "server",
-            message: error.message,
-          });
-        });
-      } else {
-        // Lỗi khác
-        toast.error("Lỗi", {
-          description: error.payload.message,
-        });
-      }
+      handleErrorApi({
+        error,
+        setError: form.setError,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
