@@ -32,3 +32,13 @@ export const handleErrorApi = ({
     });
   }
 };
+
+/**
+ *
+ * Xoá ký "/" ở đầu của path nếu có.
+ * Ví dụ: "/api/v1/users" => "api/v1/users"
+ **/
+
+export const normalizePath = (path: string) => {
+  return path.startsWith("/") ? path.slice(1) : path;
+};
