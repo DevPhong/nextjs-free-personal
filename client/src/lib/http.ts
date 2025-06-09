@@ -57,6 +57,8 @@ class SessionToken {
   private token = "";
 
   get value() {
+    if (this.token) return this.token;
+
     return this.token;
   }
 
@@ -70,7 +72,6 @@ class SessionToken {
 }
 
 export const clientSessionToken = new SessionToken();
-
 let clientLogoutRequest: null | Promise<any> = null;
 
 const request = async <Response>(
@@ -99,15 +100,12 @@ const request = async <Response>(
 
   const res = await fetch(fullUrl, {
     ...options,
-    method,
     headers: {
       ...baseHeaders,
       ...options?.headers,
-      ...(clientSessionToken.value
-        ? { Authorization: `Bearer ${clientSessionToken.value}` }
-        : {}),
     },
     body,
+    method,
   });
 
   const payload: Response = await res.json();
@@ -133,10 +131,11 @@ const request = async <Response>(
             body: JSON.stringify({ force: true }),
             headers: {
               ...baseHeaders,
-            } as any,
+            },
           });
           await clientLogoutRequest;
           clientSessionToken.value = "";
+          clientLogoutRequest = null;
           location.href = "/login";
         }
       } else {

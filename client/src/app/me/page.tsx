@@ -8,14 +8,13 @@ export default async function MeProfile() {
   // token này là lấy từ server
   const sessionToken = cookieStore.get("sessionToken");
   const result = await accountApiRequest.me(sessionToken?.value ?? "");
-  console.log(result);
 
   return (
     <div>
       <h1>Profile</h1>
       <div className="flex flex-col gap-2">
         <p className="text-sm font-semibold">
-          {/* Họ tên: {result.payload.data.name} */}
+          Họ tên: {result.payload.data.name}
         </p>
         {/* <Profile /> */}
       </div>
