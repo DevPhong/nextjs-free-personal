@@ -3,7 +3,8 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Header from "@/components/header";
 import { Toaster } from "@/components/ui/toast-custom";
-import AppProvider from "@/AppProvider";
+import AppProvider from "@/app/AppProvider";
+import { cookies } from "next/headers";
 
 const inter = Inter({ subsets: ["vietnamese"] });
 
@@ -12,6 +13,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get("sessionToken");
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className}`}>
@@ -22,7 +25,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppProvider>
+          <AppProvider inititalSessionToken={sessionToken?.value}>
             <Header />
             {children}
           </AppProvider>

@@ -1,6 +1,6 @@
 import React from "react";
 import { cookies } from "next/headers";
-import Profile from "@/app/me/profile";
+// import Profile from "@/app/me/profile";
 import accountApiRequest from "@/apiRequests/account";
 
 export default async function MeProfile() {
@@ -16,7 +16,7 @@ export default async function MeProfile() {
         <p className="text-sm font-semibold">
           Họ tên: {result.payload.data.name}
         </p>
-        <Profile />
+        {/* <Profile /> */}
       </div>
     </div>
   );

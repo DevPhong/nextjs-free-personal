@@ -1,12 +1,14 @@
 import envConfig from "@/config";
 import { normalizePath } from "@/lib/utils";
 import { LoginResType } from "@/schemaValidations/auth.schema";
+import { redirect } from "next/navigation";
 
 type CustomOptions = Omit<RequestInit, "method"> & {
   baseUrl?: string | undefined;
 };
 
 const ENTITY_ERROR_STATUS = 422;
+const AUTHENTICATION_ERROR_STATUS = 401;
 
 type EntityErrorPayload = {
   message: string;
@@ -55,6 +57,8 @@ class SessionToken {
   private token = "";
 
   get value() {
+    if (this.token) return this.token;
+
     return this.token;
   }
 
@@ -68,6 +72,7 @@ class SessionToken {
 }
 
 export const clientSessionToken = new SessionToken();
+let clientLogoutRequest: null | Promise<any> = null;
 
 const request = async <Response>(
   method: "GET" | "POST" | "PUT" | "DELETE",
@@ -95,15 +100,12 @@ const request = async <Response>(
 
   const res = await fetch(fullUrl, {
     ...options,
-    method,
     headers: {
       ...baseHeaders,
       ...options?.headers,
-      ...(clientSessionToken.value
-        ? { Authorization: `Bearer ${clientSessionToken.value}` }
-        : {}),
     },
     body,
+    method,
   });
 
   const payload: Response = await res.json();
@@ -121,6 +123,27 @@ const request = async <Response>(
           payload: EntityErrorPayload;
         }
       );
+    } else if (res.status === AUTHENTICATION_ERROR_STATUS) {
+      if (typeof window !== "undefined") {
+        if (!clientLogoutRequest) {
+          clientLogoutRequest = fetch("/api/auth/logout", {
+            method: "POST",
+            body: JSON.stringify({ force: true }),
+            headers: {
+              ...baseHeaders,
+            },
+          });
+          await clientLogoutRequest;
+          clientSessionToken.value = "";
+          clientLogoutRequest = null;
+          location.href = "/login";
+        }
+      } else {
+        const sessionToken = (options?.headers as any)?.Authorization.split(
+          "Bearer "
+        )[1];
+        redirect(`/logout?sessionToken=${sessionToken}`);
+      }
     } else {
       throw new HttpError(data);
     }
