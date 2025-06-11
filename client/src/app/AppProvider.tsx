@@ -1,17 +1,18 @@
 "use client";
+
 import { clientSessionToken } from "@/lib/http";
 import { useState } from "react";
 
 export default function AppProvider({
   children,
-  inititalSessionToken = "",
+  initialSessionToken = "",
 }: {
   children: React.ReactNode;
-  inititalSessionToken?: string;
+  initialSessionToken?: string;
 }) {
   useState(() => {
     if (typeof window !== "undefined") {
-      clientSessionToken.value = inititalSessionToken;
+      clientSessionToken.value = initialSessionToken;
     }
   });
 
