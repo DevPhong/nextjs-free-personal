@@ -2,6 +2,7 @@ import React from "react";
 import { cookies } from "next/headers";
 // import Profile from "@/app/me/profile";
 import accountApiRequest from "@/apiRequests/account";
+import ProfileForm from "@/app/me/profile-form";
 
 export default async function MeProfile() {
   const cookieStore = await cookies();
@@ -17,6 +18,8 @@ export default async function MeProfile() {
           Họ tên: {result.payload.data.name}
         </p>
         {/* <Profile /> */}
+
+        <ProfileForm profile={result.payload.data} />
       </div>
     </div>
   );
