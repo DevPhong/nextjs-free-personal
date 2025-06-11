@@ -5,6 +5,7 @@ import Header from "@/components/header";
 import { Toaster } from "@/components/ui/toast-custom";
 import AppProvider from "@/app/AppProvider";
 import { cookies } from "next/headers";
+import SlideSession from "@/components/slide-session";
 
 const inter = Inter({ subsets: ["vietnamese"] });
 
@@ -25,8 +26,9 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppProvider inititalSessionToken={sessionToken?.value}>
+          <AppProvider initialSessionToken={sessionToken?.value}>
             <Header />
+            <SlideSession />
             {children}
           </AppProvider>
         </ThemeProvider>

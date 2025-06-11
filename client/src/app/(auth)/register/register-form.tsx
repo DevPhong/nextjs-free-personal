@@ -42,12 +42,12 @@ export default function RegisterForm() {
     setLoading(true);
     try {
       const result = await authApiRequest.register(values);
-      // Thành công
-      toast.success("", { description: result.payload.message });
       // Gửi dữ liệu lên server nextjs (set-token)
       await authApiRequest.auth({
         sessionToken: result.payload.data.token as string,
+        expiresAt: result.payload.data.expiresAt as string,
       });
+      toast.success("", { description: result.payload.message });
       router.push("/me");
     } catch (error: any) {
       handleErrorApi({
