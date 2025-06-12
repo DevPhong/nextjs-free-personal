@@ -13,12 +13,11 @@ export default async function MeProfile() {
   return (
     <div>
       <h1>Profile</h1>
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-semibold">
-          Họ tên: {result.payload.data.name}
-        </p>
+      <p className="text-sm font-semibold">
+        Họ tên: {result.payload.data.name}
+      </p>
+      <div className="flex justify-center">
         {/* <Profile /> */}
-
         <ProfileForm profile={result.payload.data} />
       </div>
     </div>

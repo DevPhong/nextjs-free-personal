@@ -62,17 +62,24 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
         className="space-y-2 max-w-[600px] flex-shrink-0 w-full"
         noValidate
       >
-        <FormLabel>Email</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="shadcn"
-            type="email"
-            value={profile.email}
-            readOnly
-          />
-        </FormControl>
-
-        <FormMessage />
+        <FormField
+          control={form.control}
+          name="name"
+          render={() => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="shadcn"
+                  type="email"
+                  value={profile.email}
+                  readOnly
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
