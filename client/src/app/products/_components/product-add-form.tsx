@@ -20,22 +20,26 @@ import { useRef, useState } from "react";
 import {
   CreateProductBody,
   CreateProductBodyType,
+  ProductResType,
 } from "@/schemaValidations/product.schema";
 import productApiRequest from "@/apiRequests/product";
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 
-export default function ProductAddForm() {
+type Product = ProductResType["data"];
+export default function ProductAddForm({ product }: { product?: Product }) {
   const form = useForm<CreateProductBodyType>({
     resolver: zodResolver(CreateProductBody),
     defaultValues: {
-      name: "",
-      price: 0,
-      description: "",
-      image: "",
+      name: product?.name || "",
+      price: product?.price || 0,
+      description: product?.description || "",
+      image: product?.image || "",
     },
   });
+
   const router = useRouter();
+  const image = form.watch("image");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -140,10 +144,10 @@ export default function ProductAddForm() {
           )}
         />
 
-        {file && (
+        {(file || image) && (
           <div>
             <Image
-              src={URL.createObjectURL(file)}
+              src={file ? URL.createObjectURL(file) : image}
               width={128}
               height={128}
               alt="preview"
