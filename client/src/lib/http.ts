@@ -90,13 +90,25 @@ const request = async <Response>(
   url: string,
   options?: CustomOptions | undefined
 ) => {
-  const body = options?.body ? JSON.stringify(options.body) : undefined;
-  const baseHeaders = {
-    "Content-Type": "application/json",
-    Authorization: clientSessionToken.value
-      ? `Bearer ${clientSessionToken.value}`
-      : "",
-  };
+  const body = options?.body
+    ? options.body instanceof FormData
+      ? options.body
+      : JSON.stringify(options.body)
+    : undefined;
+
+  const baseHeaders =
+    body instanceof FormData
+      ? {
+          Authorization: clientSessionToken.value
+            ? `Bearer ${clientSessionToken.value}`
+            : "",
+        }
+      : {
+          "Content-Type": "application/json",
+          Authorization: clientSessionToken.value
+            ? `Bearer ${clientSessionToken.value}`
+            : "",
+        };
 
   // Nếu không truyền baseUrl (hoặc baseUrl là undefined) thì sẽ lấy từ envConfig.NEXT_PUBLIC_API_ENDPOINT
   // Nếu truyền baseUrl thì sẽ lấy giá trị truyền vào, truyền vào '' thì đồng nghĩa với việc chúng ta gọi API đến Next.js server
@@ -114,7 +126,7 @@ const request = async <Response>(
     headers: {
       ...baseHeaders,
       ...options?.headers,
-    },
+    } as any,
     body,
     method,
   });
@@ -142,7 +154,7 @@ const request = async <Response>(
             body: JSON.stringify({ force: true }),
             headers: {
               ...baseHeaders,
-            },
+            } as any,
           });
           await clientLogoutRequest;
           clientSessionToken.value = "";
