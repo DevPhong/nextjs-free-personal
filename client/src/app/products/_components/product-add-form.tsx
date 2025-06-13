@@ -59,6 +59,7 @@ export default function ProductAddForm({ product }: { product?: Product }) {
 
       toast.success("", { description: result.payload.message });
       router.push("/products");
+      router.refresh();
     } catch (error: any) {
       // Xử lý lỗi
       handleErrorApi({
