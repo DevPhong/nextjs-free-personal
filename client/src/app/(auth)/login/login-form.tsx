@@ -42,7 +42,8 @@ export default function LoginForm() {
         expiresAt: result.payload.data.expiresAt as string,
       });
       toast.success("", { description: result.payload.message });
-      router.push("/me");
+      router.push("/");
+      router.refresh();
     } catch (error: any) {
       // Xử lý lỗi
       handleErrorApi({

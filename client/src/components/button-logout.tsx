@@ -17,6 +17,8 @@ export default function ButtonLogout() {
       handleErrorApi({ error });
       await authApiRequest.logoutFromNextClientToNextServer();
       router.push("/login");
+    } finally {
+      router.refresh();
     }
   };
 
