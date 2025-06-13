@@ -1,4 +1,5 @@
 import productApiRequest from "@/apiRequests/product";
+import ProductAddForm from "@/app/products/_components/product-add-form";
 import React from "react";
 
 export default async function ProductDetailPage({
@@ -18,7 +19,7 @@ export default async function ProductDetailPage({
   return (
     <div>
       {!product && "Không tìm thấy sản phẩm"}
-      {product && product.name}
+      {product && <ProductAddForm product={product} />}
     </div>
   );
 }

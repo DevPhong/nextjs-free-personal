@@ -20,28 +20,32 @@ import { useRef, useState } from "react";
 import {
   CreateProductBody,
   CreateProductBodyType,
+  ProductResType,
+  UpdateProductBodyType,
 } from "@/schemaValidations/product.schema";
 import productApiRequest from "@/apiRequests/product";
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 
-export default function ProductAddForm() {
+type Product = ProductResType["data"];
+export default function ProductAddForm({ product }: { product?: Product }) {
   const form = useForm<CreateProductBodyType>({
     resolver: zodResolver(CreateProductBody),
     defaultValues: {
-      name: "",
-      price: 0,
-      description: "",
-      image: "",
+      name: product?.name || "",
+      price: product?.price || 0,
+      description: product?.description || "",
+      image: product?.image || "",
     },
   });
+
   const router = useRouter();
+  const image = form.watch("image");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const onSubmit = async (values: CreateProductBodyType) => {
-    if (loading) return; // Ngăn chặn gửi form khi đang xử lý
+  const createProduct = async (values: CreateProductBodyType) => {
     setLoading(true);
     try {
       const formData = new FormData();
@@ -63,6 +67,44 @@ export default function ProductAddForm() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateProduct = async (_values: UpdateProductBodyType) => {
+    if (!product) return;
+    setLoading(true);
+    let values = _values;
+    try {
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file as Blob);
+        const uploadImageResult = await productApiRequest.uploadImage(formData);
+        const imageUrl = uploadImageResult.payload.data;
+        values = {
+          ...values,
+          image: imageUrl,
+        };
+      }
+      const result = await productApiRequest.update(product.id, values);
+
+      toast.success("", { description: result.payload.message });
+    } catch (error: any) {
+      // Xử lý lỗi
+      handleErrorApi({
+        error,
+        setError: form.setError,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSubmit = async (values: CreateProductBodyType) => {
+    if (loading) return; // Ngăn chặn gửi form khi đang xử lý
+    if (product) {
+      await updateProduct(values);
+    } else {
+      await createProduct(values);
     }
   };
 
@@ -140,10 +182,10 @@ export default function ProductAddForm() {
           )}
         />
 
-        {file && (
+        {(file || image) && (
           <div>
             <Image
-              src={URL.createObjectURL(file)}
+              src={file ? URL.createObjectURL(file) : image}
               width={128}
               height={128}
               alt="preview"
@@ -167,7 +209,7 @@ export default function ProductAddForm() {
         )}
 
         <Button type="submit" className="!mt-8 w-full">
-          Thêm sản phẩm
+          {product ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
         </Button>
       </form>
     </Form>
