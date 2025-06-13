@@ -5,6 +5,7 @@ export default function ProductPage() {
   return (
     <div>
       <h1>Thêm sản phầm</h1>
+      <ProductAddForm />
     </div>
   );
 }

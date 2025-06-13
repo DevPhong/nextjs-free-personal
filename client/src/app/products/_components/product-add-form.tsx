@@ -21,6 +21,7 @@ import {
   CreateProductBody,
   CreateProductBodyType,
   ProductResType,
+  UpdateProductBodyType,
 } from "@/schemaValidations/product.schema";
 import productApiRequest from "@/apiRequests/product";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,8 +45,7 @@ export default function ProductAddForm({ product }: { product?: Product }) {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const onSubmit = async (values: CreateProductBodyType) => {
-    if (loading) return; // Ngăn chặn gửi form khi đang xử lý
+  const createProduct = async (values: CreateProductBodyType) => {
     setLoading(true);
     try {
       const formData = new FormData();
@@ -67,6 +67,44 @@ export default function ProductAddForm({ product }: { product?: Product }) {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateProduct = async (_values: UpdateProductBodyType) => {
+    if (!product) return;
+    setLoading(true);
+    let values = _values;
+    try {
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file as Blob);
+        const uploadImageResult = await productApiRequest.uploadImage(formData);
+        const imageUrl = uploadImageResult.payload.data;
+        values = {
+          ...values,
+          image: imageUrl,
+        };
+      }
+      const result = await productApiRequest.update(product.id, values);
+
+      toast.success("", { description: result.payload.message });
+    } catch (error: any) {
+      // Xử lý lỗi
+      handleErrorApi({
+        error,
+        setError: form.setError,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSubmit = async (values: CreateProductBodyType) => {
+    if (loading) return; // Ngăn chặn gửi form khi đang xử lý
+    if (product) {
+      await updateProduct(values);
+    } else {
+      await createProduct(values);
     }
   };
 
@@ -171,7 +209,7 @@ export default function ProductAddForm({ product }: { product?: Product }) {
         )}
 
         <Button type="submit" className="!mt-8 w-full">
-          Thêm sản phẩm
+          {product ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
         </Button>
       </form>
     </Form>
